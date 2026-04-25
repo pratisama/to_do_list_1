@@ -274,19 +274,20 @@ while prompt != "stop":
                 print("syntax length error")
 
         elif splitList[0] == "addmain":  # addmain|<taskName>
-            main_tasks = listRead("main").split("^")[:-1]
-            if len(splitList) > 1 and len(splitList[1]) > 0:
-                if splitList[1] not in main_tasks:
-                    main_tasks.append(splitList[1])
-                    printList(main_tasks, "main")
-                    listSave(main_tasks, "main")
-                else:
-                    print("task already in main")
-                    printList(main_tasks, "main")
-            else:
-                print("can't add empty task")
+            appendItem(splitList, 1, tasks, "main")
+            # main_tasks = listRead("main").split("^")[:-1]
+            # if len(splitList) > 1 and len(splitList[1]) > 0:
+            #     if splitList[1] not in main_tasks:
+            #         main_tasks.append(splitList[1])
+            #         printList(main_tasks, "main")
+            #         listSave(main_tasks, "main")
+            #     else:
+            #         print("task already in main")
+            #         printList(main_tasks, "main")
+            # else:
+            #     print("can't add empty task")
 
-        elif splitList[0] == "addat":  # addat|3|code
+        elif splitList[0] == "addat":
             # addat|<index>|<taskName>
             main_tasks = listRead(activated_List_Name).split("^")[:-1]
             if len(splitList) >= 3:
