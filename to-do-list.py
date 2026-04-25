@@ -3,13 +3,24 @@ from os import remove as osremove
 
 # remove Python form file path b4 extraction to make it independent
 # put all elifs in try: see exception handling proficiently
-def listSave(value, fileName):  # saves and write the list to memory
+
+
+def listSave(value, fileName):
+    """
+    Saves and writes the list to memory.
+    Each element is written to a file, separated by '^'.
+    Overwrites the file if it already exists.
+    """
     with open(f"Python/to-do-list/lists/{fileName}.txt", "w") as f:
         for element in value:
             f.write(element + "^")
 
 
-def listX(value, fileName):  # saves the list to memory
+def listX(value, fileName):
+    """
+    Creates a new list file and writes the list to it.
+    Raises FileExistsError if the file already exists.
+    """
     try:
         with open(f"Python/to-do-list/lists/{fileName}.txt", "x") as f:
             for element in value:
@@ -18,7 +29,11 @@ def listX(value, fileName):  # saves the list to memory
         print(f'group name: "{fileName}" already used: group exists')
 
 
-def listRead(fileName):  # reads the list from memory
+def listRead(fileName):
+    """
+    Reads the list from memory.
+    Returns the file content as a string, or a message if not found.
+    """
     try:
         with open(f"Python/to-do-list/lists/{fileName}.txt", "r") as f:
             read = f.read()
@@ -27,15 +42,21 @@ def listRead(fileName):  # reads the list from memory
         return "no task files found"
 
 
-def printList(
-    tasks, listName
-):  # prints the list in the terminal and saves it to memory
+def printList(tasks, listName):
+    """
+    Prints the tasks in the list and saves them to file.
+    Each task is printed with its index (starting from 1).
+    """
     listSave(tasks, listName)
     for idx, task in enumerate(tasks, 1):
         print(f"{idx}. {task}")
 
 
 def printGroup(groupName):
+    """
+    Prints all tasks in a group/list by name.
+    If the list is empty or not found, prints an appropriate message.
+    """
     print(f"list: {groupName}")
     if listRead(groupName) != "no task files found":
         sl = 1
@@ -49,8 +70,11 @@ def printGroup(groupName):
         print("no task files found")
 
 
-# at = location of the task being added in the prompt
 def appendItem(splitList, at, list, activated_List_Name):
+    """
+    Add a new task to the list if it doesn't already exist and is not empty.
+    Prints the updated list after addition or if the task already exists.
+    """
     if len(splitList[at]) > 0:
         if splitList[at] not in list:
             list.append(splitList[at])
@@ -63,7 +87,10 @@ def appendItem(splitList, at, list, activated_List_Name):
 
 
 def putafter(tasks, splitList):
-    """Moves a task after another task by their indices."""
+    """
+    Move a task after another task by their indices.
+    Indices are 1-based in the user prompt.
+    """
     try:
         afterFinder = splitList[1].split("after")
         idx_from = int(afterFinder[0]) - 1
@@ -77,7 +104,10 @@ def putafter(tasks, splitList):
 
 
 def putb4(tasks, splitList):
-    """Moves a task before another task by their indices."""
+    """
+    Move a task before another task by their indices.
+    Indices are 1-based in the user prompt.
+    """
     try:
         b4Finder = splitList[1].split("before")
         idx_from = int(b4Finder[0]) - 1
@@ -92,6 +122,10 @@ def putb4(tasks, splitList):
 
 
 def deleteList(splitList):
+    """
+    Delete a list file after user confirmation.
+    Prompts the user to confirm deletion.
+    """
     if listRead(splitList[1]) != "no task files found":
         confirmation = input(
             f"""{printGroup(splitList[1])}\nconfirm deletion of {splitList[1]}:(yes/no): """
@@ -103,6 +137,9 @@ def deleteList(splitList):
 
 
 def listCreate(listName):
+    """
+    Create a new empty list file.
+    """
     try:
         with open(f"Python/to-do-list/lists/{listName}.txt", "x") as f:
             pass
