@@ -176,12 +176,19 @@ while prompt != "stop":
     try:
         splitList = prompt.split("|")
 
-        if splitList[0] == "add":  # add|<taskName>
-            appendItem(splitList, 1, tasks, activated_List_Name)
+        if (
+            splitList[0] == "add"
+        ):  # add|<taskName> TODO:apply if len cond for first four together
+            (
+                appendItem(splitList, 1, tasks, activated_List_Name)
+                if len(splitList) == 1
+                else print(
+                    f"add takes one args -> task name\nGiven args: {len(splitList)-1}"
+                )
+            )
 
         elif splitList[0] == "list":  # list|<listName>
             try:
-                splitList[1]
                 printGroup(splitList[1])
             except IndexError:
                 (
