@@ -103,7 +103,11 @@ def deleteList(splitList):
 
 
 def listCreate(listName):
-    listX([], listName)
+    try:
+        with open(f"Python/to-do-list/lists/{listName}.txt", "x") as f:
+            pass
+    except FileExistsError:
+        print(f'list name: "{listName}" already used: list exists')
 
 
 activated_List_Name: str = "main"
