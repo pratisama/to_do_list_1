@@ -58,30 +58,31 @@ def printGroup(groupName):
     If the list is empty or not found, prints an appropriate message.
     """
     print(f"list: {groupName}")
-    if listRead(groupName) != "no task files found":
-        sl = 1
-        lenTest = []
-        for i in listRead(groupName).split("^")[:-1]:
-            lenTest.append(print(f"{sl}. {i}"))
-            sl += 1
-        if len(lenTest) < 1:
+    content = listRead(groupName)
+    if content != "no task files found":
+        tasks = content.split("^")[:-1]
+        if tasks:
+            for idx, task in enumerate(tasks, 1):
+                print(f"{idx}. {task}")
+        else:
             print("EMPTY")
     else:
         print("no task files found")
 
 
-def appendItem(splitList, at, list, activated_List_Name):
+def appendItem(splitList, at, tasks, activated_List_Name):
     """
     Add a new task to the list if it doesn't already exist and is not empty.
     Prints the updated list after addition or if the task already exists.
     """
-    if len(splitList[at]) > 0:
-        if splitList[at] not in list:
-            list.append(splitList[at])
-            printList(list, activated_List_Name)
+    new_task = splitList[at]
+    if len(new_task) > 0:
+        if new_task not in tasks:
+            tasks.append(new_task)
+            printList(tasks, activated_List_Name)
         else:
             print("task already in list")
-            printList(list, activated_List_Name)
+            printList(tasks, activated_List_Name)
     else:
         print("can't add empty task")
 
