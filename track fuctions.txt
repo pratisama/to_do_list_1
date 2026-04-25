@@ -1,0 +1,14 @@
+add
+list
+pop
+remove
+switch
+put
+group
+call
+addmain
+addat #not completed
+sort
+delete
+merge
+stop
