@@ -160,6 +160,29 @@ def listCreate(listName):
         print(f'list name: "{listName}" already used: list exists')
 
 
+def arg_error_msg(splitList):
+    """Prints an argument error message based on the command and expected number of arguments."""
+    print(
+        f"ARGUMENT ERROR:\n{splitList[0]} takes {args_counter[splitList[0]]} args -> \nGiven args: {len(splitList)-1}"
+    )
+
+
+args_counter = {
+    "add": 1,
+    "list": 1,
+    "pop": 1,
+    "remove": 1,
+    "delete": 1,
+    "call": 1,
+    "addmain": 1,
+    "create": 1,
+    "switch": 2,
+    "put": 2,
+    "merge": 2,
+    "addat": 2,
+    "sort": "variable",
+    "group": "variable",
+}
 activated_List_Name = "main"
 
 if listRead(activated_List_Name) == "no task files found":
@@ -172,58 +195,94 @@ prompt = None
 while prompt != "stop":
     tasks = listRead(activated_List_Name).split("^")[:-1]
     print(f"activated: {activated_List_Name}")
+
     prompt = input("\nprompt: ")
+
     try:
         splitList = prompt.split("|")
 
-        if (
-            splitList[0] == "add"
-        ):  # add|<taskName> TODO:apply if len cond for first four together
-            (
-                appendItem(splitList, 1, tasks, activated_List_Name)
-                if len(splitList) == 1
-                else print(
-                    f"add takes one args -> task name\nGiven args: {len(splitList)-1}"
-                )
-            )
+        if splitList[0] not in args_counter:
+            print(f"Unknown command: {splitList[0]}")
+            # continue
 
-        elif splitList[0] == "list":  # list|<listName>
-            try:
-                printGroup(splitList[1])
-            except IndexError:
-                (
-                    printList(tasks, activated_List_Name)
-                    if len(tasks) > 0
-                    else print("no task listed")
-                )
+        elif splitList[0] in [
+            "add",
+            "list",
+            "pop",
+            "remove",
+            "delete",
+            "call",
+            "addmain",
+            "create",
+        ]:
 
-        elif splitList[0] == "pop":  # pop|<taskno>
-            try:
-                deletedItem = tasks.pop(int(splitList[1]) - 1)
-                print(f"finished {deletedItem}")
-                printList(tasks, activated_List_Name)
-                if len(tasks) == 0:
-                    print(
-                        "All your tasks are completed"
-                        "\n"
-                        "Nothing more today..."
-                        "\n"
-                        "Enjoy the day"
-                    )
-            except (IndexError, ValueError):
-                print("Invalid task number for pop.")
+            if len(splitList) != 2:
+                arg_error_msg(splitList)
 
-        elif splitList[0] == "remove":  # remove|<taskno>
-            try:
-                deletedItem = tasks.pop(int(splitList[1]) - 1)
-                print(f"removed {deletedItem}")
-                printList(tasks, activated_List_Name)
-                if len(tasks) == 0:
-                    print("list empty")
-            except (IndexError, ValueError):
-                print("Invalid task number for remove.")
+            else:
+                if splitList[0] == "add":  # add|<taskName>
+                    appendItem(splitList, 1, tasks, activated_List_Name)
 
-        elif splitList[0] == "switch":  # switch|<taskno>|<taskno>
+                elif splitList[0] == "list":  # list|<listName>
+                    try:
+                        printGroup(splitList[1])
+                    except IndexError:
+                        (
+                            printList(tasks, activated_List_Name)
+                            if len(tasks) > 0
+                            else print("no task listed")
+                        )
+
+                elif splitList[0] == "pop":  # pop|<taskno>
+                    try:
+                        deletedItem = tasks.pop(int(splitList[1]) - 1)
+                        print(f"finished {deletedItem}")
+                        printList(tasks, activated_List_Name)
+                        if len(tasks) == 0:
+                            print(
+                                "All your tasks are completed"
+                                "\n"
+                                "Nothing more today..."
+                                "\n"
+                                "Enjoy the day"
+                            )
+                    except (IndexError, ValueError):
+                        print("Invalid task number for pop.")
+
+                elif splitList[0] == "remove":  # remove|<taskno>
+                    try:
+                        deletedItem = tasks.pop(int(splitList[1]) - 1)
+                        print(f"removed {deletedItem}")
+                        printList(tasks, activated_List_Name)
+                        if len(tasks) == 0:
+                            print("list empty")
+                    except (IndexError, ValueError):
+                        print("Invalid task number for remove.")
+
+                elif splitList[0] == "delete":
+                    deleteList(splitList)
+
+                elif splitList[0] == "call":  # call|<listName>
+                    if len(splitList) == 2:
+                        with open(
+                            os.path.join(BASE_DIR, "activated_List_Name.txt"),
+                            "w",
+                            encoding="utf-8",
+                        ) as f:
+                            f.write(splitList[1])
+                    if listRead(splitList[1]) != "no task files found":
+                        activated_List_Name = splitList[1]
+                        tasks = listRead(activated_List_Name).split("^")[:-1]
+                        printList(tasks, activated_List_Name)
+                    else:
+                        print("List does not exist.")
+                else:
+                    print("syntax length error")
+
+        elif splitList[0] == "addmain":  # addmain|<taskName>
+            appendItem(splitList, 1, tasks, "main")
+
+        if splitList[0] == "switch":  # switch|<taskno>|<taskno>
             try:
                 idx1 = int(splitList[1]) - 1
                 idx2 = int(splitList[2]) - 1
@@ -262,26 +321,6 @@ while prompt != "stop":
                     print(f"Error creating group: {e}")
             else:
                 print("no name for group creation")
-
-        elif splitList[0] == "call":  # call|<listName>
-            if len(splitList) == 2:
-                with open(
-                    os.path.join(BASE_DIR, "activated_List_Name.txt"),
-                    "w",
-                    encoding="utf-8",
-                ) as f:
-                    f.write(splitList[1])
-                if listRead(splitList[1]) != "no task files found":
-                    activated_List_Name = splitList[1]
-                    tasks = listRead(activated_List_Name).split("^")[:-1]
-                    printList(tasks, activated_List_Name)
-                else:
-                    print("List does not exist.")
-            else:
-                print("syntax length error")
-
-        elif splitList[0] == "addmain":  # addmain|<taskName>
-            appendItem(splitList, 1, tasks, "main")
 
         elif splitList[0] == "addat":
             # addat|<index>|<taskName>
@@ -324,9 +363,6 @@ while prompt != "stop":
             except ValueError:
                 print("Invalid indices for sort.")
 
-        elif splitList[0] == "delete":
-            deleteList(splitList)
-
         elif splitList[0] == "merge":
             if (
                 len(splitList) >= 3
@@ -352,9 +388,6 @@ while prompt != "stop":
 
         elif prompt == "stop":
             break
-
-        else:
-            print("function not recognised")
 
         # Save changes to the current list after each command that modifies it
         if splitList[0] in ["add", "pop", "remove", "switch", "put", "group"]:
