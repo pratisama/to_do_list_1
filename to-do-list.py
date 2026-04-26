@@ -49,6 +49,7 @@ def listRead(fileName):
 
 def printList(tasks, listName):
     """
+    input type: list[str], str
     Prints the tasks in the list and saves them to file.
     Each task is printed with its index (starting from 1).
     """
@@ -59,7 +60,8 @@ def printList(tasks, listName):
 
 def printGroup(groupName):
     """
-    Prints all tasks in a group/list by name.
+    input type: str
+    Prints all tasks in a group/list by its name.
     If the list is empty or not found, prints an appropriate message.
     """
     print(f"list: {groupName}")
@@ -382,6 +384,32 @@ while prompt != "stop":
                     print("The file name was not given")
             else:
                 print("please enter correct file names")
+
+        elif splitList[0] == "info":
+            print(f"Activated list: {activated_List_Name}")
+            printGroup(activated_List_Name)
+
+        elif splitList[0] == "help":
+            print("Available commands:")
+            print(" - add | <taskname>")
+            print(" - list | <listname>")
+            print(" - pop | <taskno>")
+            print(" - remove | <taskno>")
+            print(" - switch | <taskno>")
+            print(" - put | <taskno> before/after <taskno>")
+            print(" - group | <taskno> as <groupname>")
+            print(" - call | <listname>")
+            print(" - addat | <index> <taskname>")
+            print(" - addmain | <taskname>")
+            print(" - sort | <taskno> <taskno> ...")
+            print(" - delete | <listname>")
+            print(" - merge | <list1> <list2> as <newlist>")
+            print(" - info")
+            print(" - help")
+            print(" - stop")
+            print(
+                "Note: Commands are case-sensitive and should be entered in the specified format.\n\tDon't use spaces around '|' in commands."
+            )
 
         elif prompt == "stop":
             break
