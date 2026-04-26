@@ -263,24 +263,28 @@ while prompt != "stop":
                     deleteList(splitList)
 
                 elif splitList[0] == "call":  # call|<listName>
-                    if len(splitList) == 2:
-                        with open(
-                            os.path.join(BASE_DIR, "activated_List_Name.txt"),
-                            "w",
-                            encoding="utf-8",
-                        ) as f:
-                            f.write(splitList[1])
+                    with open(
+                        os.path.join(BASE_DIR, "activated_List_Name.txt"),
+                        "w",
+                        encoding="utf-8",
+                    ) as f:
+                        f.write(splitList[1])
                     if listRead(splitList[1]) != "no task files found":
                         activated_List_Name = splitList[1]
                         tasks = listRead(activated_List_Name).split("^")[:-1]
                         printList(tasks, activated_List_Name)
                     else:
                         print("List does not exist.")
-                else:
-                    print("syntax length error")
 
-        elif splitList[0] == "addmain":  # addmain|<taskName>
-            appendItem(splitList, 1, tasks, "main")
+                elif splitList[0] == "addmain":  # addmain|<taskName>
+                    appendItem(splitList, 1, tasks, "main")
+
+                elif splitList[0] == "create":
+                    if len(splitList) > 1:
+                        listCreate(splitList[1])
+                        print(f"List created by name: {splitList[1]}")
+                    else:
+                        print("No list name provided for create.")
 
         if splitList[0] == "switch":  # switch|<taskno>|<taskno>
             try:
@@ -378,13 +382,6 @@ while prompt != "stop":
                     print("The file name was not given")
             else:
                 print("please enter correct file names")
-
-        elif splitList[0] == "create":
-            if len(splitList) > 1:
-                listCreate(splitList[1])
-                print(f"List created by name: {splitList[1]}")
-            else:
-                print("No list name provided for create.")
 
         elif prompt == "stop":
             break
