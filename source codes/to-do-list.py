@@ -2,7 +2,7 @@ import os
 import pathlib as pl
 
 # Use os.path.join for cross-platform file paths
-BASE_DIR = pl.Path(__file__).parent / "lists"
+BASE_DIR = pl.Path(__file__).parent.parent / "lists"
 
 
 def save_list(value, file_name):
