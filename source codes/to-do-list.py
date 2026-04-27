@@ -1,7 +1,5 @@
-import os
-import pathlib as pl
+import os, pathlib as pl
 
-# Use os.path.join for cross-platform file paths
 BASE_DIR = pl.Path(__file__).parent.parent / "lists"
 
 
@@ -11,8 +9,8 @@ def save_list(value, file_name):
     Each element is written to a file, separated by '^'.
     Overwrites the file if it already exists.
     """
-    os.makedirs(BASE_DIR, exist_ok=True)
-    with open(os.path.join(BASE_DIR, f"{file_name}.txt"), "w", encoding="utf-8") as f:
+    BASE_DIR.mkdir(parents=True, exist_ok=True)
+    with open(BASE_DIR / f"{file_name}.txt", "w", encoding="utf-8") as f:
         for element in value:
             f.write(element + "^")
 
@@ -22,11 +20,9 @@ def create_and_write_list(value, file_name):
     Creates a new list file and writes the list to it.
     Raises FileExistsError if the file already exists.
     """
-    os.makedirs(BASE_DIR, exist_ok=True)
+    BASE_DIR.mkdir(parents=True, exist_ok=True)
     try:
-        with open(
-            os.path.join(BASE_DIR, f"{file_name}.txt"), "x", encoding="utf-8"
-        ) as f:
+        with open(BASE_DIR / f"{file_name}.txt", "x", encoding="utf-8") as f:
             for element in value:
                 f.write(element + "^")
     except FileExistsError:
