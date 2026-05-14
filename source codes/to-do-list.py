@@ -2,28 +2,44 @@ import os, pathlib as pl
 
 BASE_DIR = pl.Path(__file__).parent.parent / "lists"
 
+def error_msg(msg: str):
+    """Prints an error message."""
+    print(f"ERROR: {msg}")
 
-def save_list(value, file_name):
+def ensure_base_dir():
+    """
+    Ensures that the base directory for storing lists exists. If it doesn't, it creates it.
+    """
+    BASE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _list_path(list_name: str) -> pl.Path:
+    """
+    Return the full .txt path for a given list name (private).
+    """
+    return BASE_DIR / f"{list_name}.txt"
+
+def save_list(tasks, file_name):
     """
     Saves and writes the list to memory.
     Each element is written to a file, separated by '^'.
     Overwrites the file if it already exists.
     """
-    BASE_DIR.mkdir(parents=True, exist_ok=True)
-    with open(BASE_DIR / f"{file_name}.txt", "w", encoding="utf-8") as f:
-        for element in value:
+    ensure_base_dir()
+    with open(_list_path(file_name), "w", encoding="utf-8") as f:
+        for element in tasks:
             f.write(element + "^")
 
 
-def create_and_write_list(value, file_name):
+def create_and_write_list(tasks, file_name):
     """
     Creates a new list file and writes the list to it.
     Raises FileExistsError if the file already exists.
     """
-    BASE_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_base_dir()
     try:
-        with open(BASE_DIR / f"{file_name}.txt", "x", encoding="utf-8") as f:
-            for element in value:
+        with open(_list_path(file_name), "x", encoding="utf-8") as f:
+            for element in tasks:
                 f.write(element + "^")
     except FileExistsError:
         print(f'group name: "{file_name}" already used: group exists')
@@ -35,9 +51,7 @@ def read_list(file_name):
     Returns the file content as a string, or a message if not found.
     """
     try:
-        with open(
-            os.path.join(BASE_DIR, f"{file_name}.txt"), "r", encoding="utf-8"
-        ) as f:
+        with open(_list_path(file_name), "r", encoding="utf-8") as f:
             read = f.read()
         return read
     except FileNotFoundError:
@@ -173,11 +187,6 @@ def rename_list(old_name, new_name):
         return
     os.rename(old_path, new_path)
     print(f"Renamed list from {old_name} to {new_name}")
-
-
-def error_msg(msg: str):
-    """Prints an error message."""
-    print(f"ERROR: {msg}")
 
 
 def arg_error_msg(split_list):
