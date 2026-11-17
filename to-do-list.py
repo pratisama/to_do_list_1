@@ -1,10 +1,12 @@
 import os, pathlib as pl
 
-BASE_DIR = pl.Path(__file__).parent.parent / "lists"
+BASE_DIR = pl.Path(__file__).parent / "lists"
+
 
 def error_msg(msg: str):
     """Prints an error message."""
     print(f"ERROR: {msg}")
+
 
 def ensure_base_dir():
     """
@@ -18,6 +20,7 @@ def _list_path(list_name: str) -> pl.Path:
     Return the full .txt path for a given list name (private).
     """
     return BASE_DIR / f"{list_name}.txt"
+
 
 def save_list(tasks, file_name):
     """
@@ -115,7 +118,7 @@ def put_after(tasks, split_list):
         idx_from = int(after_finder[0]) - 1
         idx_to = int(after_finder[1])
         pop_item = tasks.pop(idx_from)
-        tasks.insert(idx_to, pop_item)
+        tasks.insert(idx_to - 1, pop_item)
         return tasks
     except (ValueError, IndexError):
         print("Invalid indices for 'putafter'.")
@@ -136,8 +139,10 @@ def put_before(tasks, split_list):
             tasks.insert(idx_to, pop_item)
         else:
             tasks.insert(idx_to - 1, pop_item)
+        return tasks
     except (ValueError, IndexError):
         print("Invalid indices for 'putb4'.")
+        return tasks
 
 
 def delete_list(split_list):
@@ -457,9 +462,9 @@ while prompt != "stop":
     except IndexError as e:
         try:
             (
-                print(f"no task found in {split_list[1]}:", e)
+                print(f"no task found in {split_list[1]}:", e)  # type: ignore
                 if len(split_list) > 1 and int(split_list[1]) > len(tasks)  # type: ignore
-                else print(f"no task found in {split_list[2]}:", e)
+                else print(f"no task found in {split_list[2]}:", e)  # type: ignore
             )
         except Exception:
             print(f"no task index specified", e)
@@ -467,5 +472,3 @@ while prompt != "stop":
         print("incorrect values", "error: ", e)
     except Exception as e:
         print(f"an error occurred: {e}")
-    finally:
-        print(split_list)
