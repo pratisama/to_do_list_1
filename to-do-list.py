@@ -1,4 +1,4 @@
-import os, pathlib as pl
+import pathlib as pl
 
 BASE_DIR = pl.Path(__file__).parent / "lists"
 
@@ -22,90 +22,141 @@ def _list_path(list_name: str) -> pl.Path:
     return BASE_DIR / f"{list_name}.txt"
 
 
-def save_list(tasks, file_name):
+def create_empty_list(list_name: str) -> bool:
     """
-    Saves and writes the list to memory.
-    Each element is written to a file, separated by '^'.
-    Overwrites the file if it already exists.
+    Create a new empty list file.\n
+    Arguments: list name.\n
+    Returns: True if successful and False otherwise.
+    Prints errors if path exists.
+    """
+    BASE_DIR.mkdir(parents=True, exist_ok=True)
+    path = _list_path(list_name)
+
+    try:
+        path.touch(exist_ok=False)
+        print(f"List created: {list_name}")
+        return True
+    except FileExistsError:
+        print(f'List "{list_name}" already exists.')
+        return False
+    except OSError as e:
+        print(f"Error creating list: {e}")
+        return False
+
+
+def write_list(tasks: list[str], list_name: str) -> bool:
+    """
+    Writes the list to a list file.\n
+    Arguments: task list and list name.\n
+    Returns: True if written successfully.\n
+    Each task is separated by '^'.\n
+    Overwrites the file if it already exists. Creates new if it doesn't.
     """
     ensure_base_dir()
-    with open(_list_path(file_name), "w", encoding="utf-8") as f:
-        for element in tasks:
-            f.write(element + "^")
+    try:
+        with open(_list_path(list_name), "w", encoding="utf-8") as f:
+            for element in tasks:
+                f.write(element + "^")
+            return True
+    except OSError:
+        return False
 
 
-def create_and_write_list(tasks, file_name):
+def create_and_write_list(tasks: list[str], list_name: str) -> bool:
     """
-    Creates a new list file and writes the list to it.
+    Creates a new list file and writes the list to it.\n
+    Arguments: task list and list name.\n
+    Returns: True if written successfully, False otherwise.\n
+    Each task is separated by '^'.\n
     Raises FileExistsError if the file already exists.
     """
     ensure_base_dir()
+
     try:
-        with open(_list_path(file_name), "x", encoding="utf-8") as f:
-            for element in tasks:
-                f.write(element + "^")
+        with open(_list_path(list_name), "x", encoding="utf-8") as f:
+            for task in tasks:
+                f.write(task + "^")
+        return True
     except FileExistsError:
-        print(f'group name: "{file_name}" already used: group exists')
+        error_msg(f'List "{list_name}" already exists.')
+        return False
 
 
-def read_list(file_name):
+def read_list(list_name: str) -> str:
     """
-    Reads the list from memory.
-    Returns the file content as a string, or a message if not found.
+    Reads the list from memory.\n
+    Arguments: list name.\n
+    Returns: the string containing tasks in the list, seperated by "^".\n
+    Returns: "no task files found" if FileNotFoundError occurs.
     """
     try:
-        with open(_list_path(file_name), "r", encoding="utf-8") as f:
+        with open(_list_path(list_name), "r", encoding="utf-8") as f:
             read = f.read()
         return read
     except FileNotFoundError:
         return "no task files found"
 
 
-def print_list(tasks, list_name):
-    """
-    input type: list[str], str
-    Prints the tasks in the list and saves them to file.
-    Each task is printed with its index (starting from 1).
-    """
-    save_list(tasks, list_name)
+def print_list(tasks: list[str]) -> None:
+    """Prints tasks supplied as a list."""
     for idx, task in enumerate(tasks, 1):
         print(f"{idx}. {task}")
 
 
-def print_group(group_name):
+def save_and_print_list(tasks: list[str], list_name: str) -> bool:
     """
-    input type: str
-    Prints all tasks in a group/list by its name.
-    If the list is empty or not found, prints an appropriate message.
+    Saves the tasks in the list file and prints them.\n
+    Each task is printed with its index (starting from sl no. 1).\n
+    Arguments: task list and list name.\n
+    Returns: True if saved and printed, False if not saved.\n
     """
-    print(f"list: {group_name}")
-    content = read_list(group_name)
-    if content != "no task files found":
-        tasks = content.split("^")[:-1]
-        if tasks:
-            for idx, task in enumerate(tasks, 1):
-                print(f"{idx}. {task}")
-        else:
-            print("EMPTY")
-    else:
+    if not write_list(tasks, list_name):
+        return False
+    print_list(tasks)
+    return True
+
+
+def read_and_print_list(list_name: str) -> bool:
+    """
+    Prints all tasks in a saved list.\n
+    If the list is empty or not found, prints an appropriate message.\n
+    Arguments: list name.\n
+    Returns: True if list is found in memory, False otherwise.
+    """
+    content = read_list(list_name)
+
+    if content == "no task files found":
         print("no task files found")
+        return False
 
+    print(f"list: {list_name}")
+    tasks = content.split("^")[:-1]
 
-def append_item(split_list, at, tasks, activated_list_name):
-    """
-    Add a new task to the list if it doesn't already exist and is not empty.
-    Prints the updated list after addition or if the task already exists.
-    """
-    new_task = split_list[at]
-    if len(new_task) > 0:
-        if new_task not in tasks:
-            tasks.append(new_task)
-            print_list(tasks, activated_list_name)
-        else:
-            print("task already in list")
-            print_list(tasks, activated_list_name)
+    if not tasks:
+        print("EMPTY")
     else:
+        print_list(tasks)
+    return True
+
+
+def add_new_task(new_task: str, tasks: list[str], list_name: str) -> bool:
+    """
+    Adds a new non-empty task to the list if it doesn't already exist in it.\n
+    Arguments: new non-empty task, task list, and list name.\n
+    Returns: False if empty task or save faliure, None if task already in list, True otherwise.\n
+    Saves and prints the final list if task is added.
+    """
+    if not new_task:
         print("can't add empty task")
+        return False
+    if new_task in tasks:
+        print("task already in list")
+        return False
+    tasks.append(new_task)
+    if not save_and_print_list(tasks, list_name):
+        tasks.pop()
+        return False
+    return True
 
 
 def put_after(tasks, split_list):
@@ -145,53 +196,60 @@ def put_before(tasks, split_list):
         return tasks
 
 
-def delete_list(split_list):
+def delete_list(list_name: str) -> bool:  # type: ignore
     """
     Delete a list file after user confirmation.
-    Prompts the user to confirm deletion.
+    Prompts the user to confirm deletion
+    Arguments: current name and new name of the list(in order).\n
+    Returns: True if successful and False otherwise.
+    Prints errors if path exists.
     """
-    if len(split_list) < 2:
-        print("No list specified for deletion.")
-        return
-    if read_list(split_list[1]) != "no task files found":
-        print_group(split_list[1])
-        confirmation = input(f"confirm deletion of {split_list[1]}:(yes/no): ")
-        if confirmation.lower() == "yes":
-            try:
-                os.remove(os.path.join(BASE_DIR, f"{split_list[1]}.txt"))
-                print(f"Deleted list: {split_list[1]}")
-            except Exception as e:
-                print(f"Error deleting list: {e}")
+    path = _list_path(list_name)
 
+    if not path.exists():
+        print("List does not exist.")
+        return False
 
-def list_create(list_name):
-    """
-    Create a new empty list file.
-    """
-    os.makedirs(BASE_DIR, exist_ok=True)
+    read_and_print_list(list_name)
+    confirmation = input(f"Confirm deletion of {list_name} (yes/no): ").strip().lower()
+
+    if confirmation != "yes":
+        print("Deletion cancelled.")
+        return False
     try:
-        with open(
-            os.path.join(BASE_DIR, f"{list_name}.txt"), "x", encoding="utf-8"
-        ) as f:
-            pass
-    except FileExistsError:
-        print(f'list name: "{list_name}" already used: list exists')
+        path.unlink()
+        print(f"Deleted list: {list_name}")
+        return True
+    except OSError as e:
+        print(f"Error deleting list: {e}")
+        return False
 
 
-def rename_list(old_name, new_name):
+def rename_list(old_name: str, new_name: str) -> bool:
     """
-    Rename an existing list file to a new name.
+    Rename an existing list file to a new name.\n
+    Arguments: current name and new name of the list(in order).\n
+    Returns: True if successful and False otherwise.
+    Prints errors if path exists.
     """
-    old_path = os.path.join(BASE_DIR, f"{old_name}.txt")
-    new_path = os.path.join(BASE_DIR, f"{new_name}.txt")
-    if not os.path.exists(old_path):
-        print(f"Cannot rename: List {old_name} does not exist.")
-        return
-    if os.path.exists(new_path):
+    old_path = _list_path(old_name)
+    new_path = _list_path(new_name)
+
+    if not old_path.is_file():
+        print(f'Cannot rename: List "{old_name}" does not exist.')
+        return False
+    if new_path.is_file():
         print(f"Cannot rename: A list with the name {new_name} already exists.")
-        return
-    os.rename(old_path, new_path)
-    print(f"Renamed list from {old_name} to {new_name}")
+        return False
+
+    try:
+        old_path.rename(new_path)
+    except OSError as e:
+        error_msg(f"Could not rename list: {e}")
+        return False
+
+    print(f'Renamed list from "{old_name}" to "{new_name}"')
+    return True
 
 
 def arg_error_msg(split_list):
@@ -217,16 +275,19 @@ ARGS_COUNTER = {
     "switch": 2,
     "merge": 2,
     "addat": 2,
+    "rename": 2,
     "sort": "variable",
     "group": "variable",
 }
+
+
 activated_list_name = "main"
 
 if read_list(activated_list_name) == "no task files found":
-    list_create(activated_list_name)
+    create_empty_list(activated_list_name)
 
 tasks = read_list(activated_list_name).split("^")[:-1]
-print_list(tasks, activated_list_name)
+save_and_print_list(tasks, activated_list_name)
 prompt = None
 
 while prompt != "stop":
@@ -257,14 +318,14 @@ while prompt != "stop":
 
             else:
                 if split_list[0] == "add":  # add|<taskName>
-                    append_item(split_list, 1, tasks, activated_list_name)
+                    add_new_task(split_list[1], tasks, activated_list_name)
 
                 elif split_list[0] == "list":  # list|<listname>
                     try:
-                        print_group(split_list[1])
+                        read_and_print_list(split_list[1])
                     except IndexError:
                         (
-                            print_list(tasks, activated_list_name)
+                            save_and_print_list(tasks, activated_list_name)
                             if len(tasks) > 0
                             else print("no task listed")
                         )
@@ -273,7 +334,7 @@ while prompt != "stop":
                     try:
                         deleted_item = tasks.pop(int(split_list[1]) - 1)
                         print(f"finished {deleted_item}")
-                        print_list(tasks, activated_list_name)
+                        save_and_print_list(tasks, activated_list_name)
                         if len(tasks) == 0:
                             print(
                                 "All your tasks are completed"
@@ -289,7 +350,7 @@ while prompt != "stop":
                     try:
                         deleted_item = tasks.pop(int(split_list[1]) - 1)
                         print(f"removed {deleted_item}")
-                        print_list(tasks, activated_list_name)
+                        save_and_print_list(tasks, activated_list_name)
                         if len(tasks) == 0:
                             print("list empty")
                     except (IndexError, ValueError):
@@ -303,16 +364,16 @@ while prompt != "stop":
                             tasks = put_before(tasks, split_list)
                         else:
                             print("Specify 'before' or 'after' in put command.")
-                        print_list(tasks, activated_list_name)
+                        save_and_print_list(tasks, activated_list_name)
                     except Exception as e:
                         print(f"Error in put command: {e}")
 
                 elif split_list[0] == "delete":
-                    delete_list(split_list)
+                    delete_list(split_list[1])
 
                 elif split_list[0] == "call":  # call|<list name>
                     with open(
-                        os.path.join(BASE_DIR, "activated_list_name.txt"),
+                        _list_path("activated_List_Name"),
                         "w",
                         encoding="utf-8",
                     ) as f:
@@ -320,17 +381,17 @@ while prompt != "stop":
                     if read_list(split_list[1]) != "no task files found":
                         activated_list_name = split_list[1]
                         tasks = read_list(activated_list_name).split("^")[:-1]
-                        print_list(tasks, activated_list_name)
+                        save_and_print_list(tasks, activated_list_name)
                     else:
                         print("List does not exist.")
 
                 elif split_list[0] == "addmain":  # addmain|<taskName>
                     main_tasks = read_list("main").split("^")[:-1]
-                    append_item(split_list, 1, main_tasks, "main")
+                    add_new_task(split_list[1], main_tasks, "main")
 
                 elif split_list[0] == "create":
                     if len(split_list) > 1:
-                        list_create(split_list[1])
+                        create_empty_list(split_list[1])
                         print(f"List created by name: {split_list[1]}")
                     else:
                         print("No list name provided for create.")
@@ -340,7 +401,7 @@ while prompt != "stop":
                 idx1 = int(split_list[1]) - 1
                 idx2 = int(split_list[2]) - 1
                 tasks[idx1], tasks[idx2] = tasks[idx2], tasks[idx1]
-                print_list(tasks, activated_list_name)
+                save_and_print_list(tasks, activated_list_name)
             except (IndexError, ValueError):
                 print("Invalid indices for switch.")
 
@@ -359,8 +420,8 @@ while prompt != "stop":
                         group_list.insert(0, temp_list[idx])  # maintain original order
                         tasks.pop(idx)
                     create_and_write_list(group_list, name_finder[-1])
-                    print_group(name_finder[-1])
-                    save_list(tasks, activated_list_name)
+                    read_and_print_list(name_finder[-1])
+                    write_list(tasks, activated_list_name)
                 except Exception as e:
                     print(f"Error creating group: {e}")
             else:
@@ -376,11 +437,11 @@ while prompt != "stop":
                     if len(task_to_add) > 0:
                         if task_to_add not in main_tasks:
                             main_tasks.insert(index, task_to_add)
-                            print_list(main_tasks, activated_list_name)
-                            save_list(main_tasks, activated_list_name)
+                            save_and_print_list(main_tasks, activated_list_name)
+                            write_list(main_tasks, activated_list_name)
                         else:
                             print("task already in list")
-                            print_list(main_tasks, activated_list_name)
+                            save_and_print_list(main_tasks, activated_list_name)
                     else:
                         print("can't add empty task")
                 except (ValueError, IndexError):
@@ -402,8 +463,8 @@ while prompt != "stop":
                         if idx not in indices
                     ]
                     main_tasks = sorted_tasks + remaining_tasks
-                    print_list(main_tasks, activated_list_name)
-                    save_list(main_tasks, activated_list_name)
+                    save_and_print_list(main_tasks, activated_list_name)
+                    write_list(main_tasks, activated_list_name)
             except ValueError:
                 print("Invalid indices for sort.")
 
@@ -424,40 +485,44 @@ while prompt != "stop":
                 print("please enter correct file names")
 
         elif split_list[0] == "rename":
-            rename_list(split_list[1], split_list[2])
+            if rename_list(split_list[1], split_list[2]):
+                print("List renamed successfully")
+            else:
+                print("List rename aborted")
 
         elif split_list[0] == "info":
             print(f"Activated list: {activated_list_name}")
-            print_group(activated_list_name)
+            read_and_print_list(activated_list_name)
 
         elif split_list[0] == "help":
-            print("Available commands:")
-            print(" - add | <taskname>")
-            print(" - list | <listname>")
-            print(" - pop | <taskno>")
-            print(" - remove | <taskno>")
-            print(" - switch | <taskno> | <taskno>")
-            print(" - put | <taskno> before/after <taskno>")
-            print(" - group | <taskno> as <groupname>")
-            print(" - call | <listname>")
-            print(" - addat | <index> | <taskname>")
-            print(" - addmain | <taskname>")
-            print(" - sort | <taskno> <taskno> ...")
-            print(" - delete | <listname>")
-            print(" - merge | <list1> | <list2> | <newlist>")
-            print(" - info")
-            print(" - help")
-            print(" - stop")
-            print(
-                "Note: Commands are case-sensitive and should be entered in the specified format.\n\tDon't use spaces around '|' in commands."
-            )
+            print("""Available commands:
+ - add | <taskname>
+ - list | <listname>
+ - pop | <taskno>
+ - remove | <taskno>
+ - switch | <taskno> | <taskno>
+ - put | <taskno> before/after <taskno>
+ - group | <taskno> as <groupname>
+ - call | <listname>
+ - create | <listname>
+ - addat | <index> | <taskname>
+ - addmain | <taskname>
+ - sort | <taskno> <taskno> ...
+ - delete | <listname>
+ - merge | <list1> | <list2> | <newlist>
+ - rename | <oldlist> | <newlist>
+ - info
+ - help
+ - stop
+Note: Commands are case-sensitive and should be entered in the specified format.
+        Don't use spaces around '|' in commands.""")
 
         elif prompt == "stop":
             break
 
         # Save changes to the current list after each command that modifies it
         if split_list[0] in ["add", "pop", "remove", "switch", "put", "group"]:
-            save_list(tasks, activated_list_name)
+            write_list(tasks, activated_list_name)
 
     except IndexError as e:
         try:
@@ -468,7 +533,8 @@ while prompt != "stop":
             )
         except Exception:
             print(f"no task index specified", e)
+
     except ValueError as e:
-        print("incorrect values", "error: ", e)
+        print(f"Unexpected values;\nError: {e}")
     except Exception as e:
         print(f"an error occurred: {e}")
